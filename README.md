@@ -102,3 +102,4 @@ football-project/
    In `Tournament.java`, the tournament holds a reference to `FixtureGenerator` without knowing whether it is `RoundRobinGenerator` or `KnockoutGenerator`.
 3. **Why use checked exceptions?**  
    Exceptions like `DuplicateTeamException` and `InvalidScoreException` represent domain rule violations that the user interface is expected to catch and display gracefully.
+
