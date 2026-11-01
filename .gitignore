@@ -1,0 +1,4 @@
+bin/
+*.class
+*.dat
+*.log
