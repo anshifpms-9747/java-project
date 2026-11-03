@@ -473,12 +473,14 @@ public class Main {
     // ========================================================
 
     private static void handleSaveAndLoadData() {
-        System.out.println("--- [8] SAVE & LOAD DATA (JAVA SERIALIZATION) ---");
-        System.out.println("  1. Save Tournament Data to Disk");
-        System.out.println("  2. Load Tournament Data from Disk");
-        System.out.println("  3. Return to Main Menu");
+        System.out.println("--- [8] SAVE & LOAD DATA (FILE & SQL DATABASE) ---");
+        System.out.println("  1. Save Tournament Data to Disk (.dat Serialization)");
+        System.out.println("  2. Load Tournament Data from Disk (.dat Deserialization)");
+        System.out.println("  3. Save Tournament to Relational SQL Database (JDBC)");
+        System.out.println("  4. Load Tournament from Relational SQL Database (JDBC)");
+        System.out.println("  5. Return to Main Menu");
 
-        int choice = readIntInput("Select an option (1-3): ", 1, 3);
+        int choice = readIntInput("Select an option (1-5): ", 1, 5);
         System.out.println();
 
         if (choice == 1) {
@@ -493,6 +495,24 @@ public class Main {
                 tournament = loaded;
                 System.out.printf("  [SUCCESS] Tournament '%s' active! Registered Teams: %d, Matches: %d%n",
                         tournament.getName(), tournament.getTeamCount(), tournament.getMatches().size());
+            }
+        } else if (choice == 3) {
+            System.out.println("  Saving to SQL Database (" + DatabaseManager.getDbType() + ": " + DatabaseManager.getDbUrl() + ")...");
+            boolean ok = DatabaseManager.saveTournament(tournament);
+            if (ok) {
+                System.out.println("  [SUCCESS] All teams, players, referees, and fixtures committed to SQL tables!");
+            } else {
+                System.out.println("  [ERROR] Database save failed. Check connection parameters.");
+            }
+        } else if (choice == 4) {
+            System.out.println("  Loading from SQL Database (" + DatabaseManager.getDbType() + ": " + DatabaseManager.getDbUrl() + ")...");
+            Tournament loaded = DatabaseManager.loadTournament();
+            if (loaded != null) {
+                tournament = loaded;
+                System.out.printf("  [SUCCESS] Tournament '%s' restored from SQL database! (%d teams, %d matches)%n",
+                        tournament.getName(), tournament.getTeamCount(), tournament.getMatches().size());
+            } else {
+                System.out.println("  [ERROR] No tournament data found in database or connection failed.");
             }
         }
     }

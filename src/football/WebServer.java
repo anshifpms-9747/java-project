@@ -43,6 +43,8 @@ public class WebServer {
         server.createContext("/api/player/add", new ApiAddPlayerHandler());
         server.createContext("/api/save", new ApiSaveHandler());
         server.createContext("/api/load", new ApiLoadHandler());
+        server.createContext("/api/db/save", new ApiDbSaveHandler());
+        server.createContext("/api/db/load", new ApiDbLoadHandler());
         server.createContext("/api/demo", new ApiDemoHandler());
 
         server.setExecutor(null); // Default single-threaded executor
@@ -351,6 +353,30 @@ public class WebServer {
                 sendJsonResponse(exchange, 200, "{\"success\":true,\"message\":\"Loaded from file\"}");
             } else {
                 sendJsonResponse(exchange, 404, "{\"success\":false,\"error\":\"File not found or corrupted\"}");
+            }
+        }
+    }
+
+    private class ApiDbSaveHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            boolean ok = DatabaseManager.saveTournament(tournament);
+            if (ok) {
+                sendJsonResponse(exchange, 200, "{\"success\":true,\"message\":\"Tournament saved to SQL Database (" + DatabaseManager.getDbType() + ")!\"}");
+            } else {
+                sendJsonResponse(exchange, 500, "{\"success\":false,\"error\":\"SQL Database save failed.\"}");
+            }
+        }
+    }
+
+    private class ApiDbLoadHandler implements HttpHandler {
+        @Override
+        public void handle(HttpExchange exchange) throws IOException {
+            Tournament loaded = DatabaseManager.loadTournament();
+            if (loaded != null) {
+                sendJsonResponse(exchange, 200, "{\"success\":true,\"message\":\"Tournament loaded from SQL Database!\"}");
+            } else {
+                sendJsonResponse(exchange, 404, "{\"success\":false,\"error\":\"No data found in SQL Database or connection failed.\"}");
             }
         }
     }
@@ -793,14 +819,18 @@ public class WebServer {
 "\n" +
 "      <!-- TAB 5: DATA STORAGE -->\n" +
 "      <div id=\"tab-data\" class=\"tab-view\">\n" +
-"        <div class=\"kpi-grid\">\n" +
+"        <div class=\"kpi-grid\" style=\"grid-template-columns: repeat(2, 1fr);\">\n" +
 "          <div class=\"kpi-card\">\n" +
-"            <span class=\"label\">Java Object Serialization</span>\n" +
-"            <button class=\"btn-primary\" style=\"margin-top: 10px;\" onclick=\"saveData()\">💾 Save to tournament_data.dat</button>\n" +
+"            <span class=\"label\">🗄️ Relational SQL Database (JDBC)</span>\n" +
+"            <span style=\"font-size: 0.8rem; color: var(--accent-gold); margin-top: 4px;\">SQLite / MySQL with PreparedStatement & Transactions</span>\n" +
+"            <button class=\"btn-primary\" style=\"margin-top: 10px;\" onclick=\"saveToSql()\">💾 Save to SQL Database</button>\n" +
+"            <button class=\"btn-action btn-demo\" style=\"margin-top: 8px;\" onclick=\"loadFromSql()\">📂 Load from SQL Database</button>\n" +
 "          </div>\n" +
 "          <div class=\"kpi-card\">\n" +
-"            <span class=\"label\">Java Object Deserialization</span>\n" +
-"            <button class=\"btn-action btn-demo\" style=\"margin-top: 10px;\" onclick=\"loadData()\">📂 Load from Disk</button>\n" +
+"            <span class=\"label\">Binary File Serialization (.dat)</span>\n" +
+"            <span style=\"font-size: 0.8rem; color: var(--text-muted); margin-top: 4px;\">ObjectOutputStream & ObjectInputStream</span>\n" +
+"            <button class=\"btn-primary\" style=\"margin-top: 10px;\" onclick=\"saveData()\">💾 Save to tournament_data.dat</button>\n" +
+"            <button class=\"btn-action btn-demo\" style=\"margin-top: 8px;\" onclick=\"loadData()\">📂 Load from Disk</button>\n" +
 "          </div>\n" +
 "        </div>\n" +
 "      </div>\n" +
@@ -1044,6 +1074,19 @@ public class WebServer {
 "    async function loadDemo() {\n" +
 "      await fetch('/api/demo');\n" +
 "      showToast('Sample demo data loaded!');\n" +
+"      loadDataFromApi();\n" +
+"    }\n" +
+"\n" +
+"    async function saveToSql() {\n" +
+"      const res = await fetch('/api/db/save');\n" +
+"      const json = await res.json();\n" +
+"      showToast(json.message || json.error);\n" +
+"    }\n" +
+"\n" +
+"    async function loadFromSql() {\n" +
+"      const res = await fetch('/api/db/load');\n" +
+"      const json = await res.json();\n" +
+"      showToast(json.message || json.error);\n" +
 "      loadDataFromApi();\n" +
 "    }\n" +
 "\n" +

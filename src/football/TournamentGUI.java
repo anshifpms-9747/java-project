@@ -594,13 +594,59 @@ public class TournamentGUI extends JFrame {
         panel.setOpaque(false);
         panel.setBorder(new EmptyBorder(0, 24, 24, 24));
 
-        // Card 1: Save Tournament
+        // Card 1: SQL Relational Database (JDBC)
+        JPanel sqlCard = new JPanel(new GridLayout(5, 1, 0, 8));
+        sqlCard.setPreferredSize(new Dimension(380, 240));
+        sqlCard.setBackground(BG_CARD);
+        sqlCard.setBorder(new EmptyBorder(16, 18, 16, 18));
+
+        JLabel lblSqlTitle = new JLabel("🗄️  SQL Database (JDBC)");
+        lblSqlTitle.setFont(FONT_HEADER);
+        lblSqlTitle.setForeground(TEXT_LIGHT);
+
+        JLabel lblSqlDesc = new JLabel("Engine: " + DatabaseManager.getDbType().toUpperCase() + " | " + DatabaseManager.getDbUrl());
+        lblSqlDesc.setFont(FONT_SMALL);
+        lblSqlDesc.setForeground(ACCENT_GOLD);
+
+        JLabel lblSqlInfo = new JLabel("Relational schema with ACID transactions (PreparedStatement).");
+        lblSqlInfo.setFont(FONT_SMALL);
+        lblSqlInfo.setForeground(TEXT_MUTED);
+
+        JButton btnSqlSave = createActionButton("💾 Save to SQL Database", ACCENT_GREEN);
+        btnSqlSave.addActionListener(e -> {
+            boolean ok = DatabaseManager.saveTournament(tournament);
+            if (ok) {
+                showSuccessToast("Tournament successfully saved into SQL Database (" + DatabaseManager.getDbType() + ")!");
+            } else {
+                showErrorAlert("Failed to save to SQL Database. Check logs for details.");
+            }
+        });
+
+        JButton btnSqlLoad = createActionButton("📂 Load from SQL Database", ACCENT_BLUE);
+        btnSqlLoad.addActionListener(e -> {
+            Tournament loaded = DatabaseManager.loadTournament();
+            if (loaded != null) {
+                this.tournament = loaded;
+                refreshAllViews();
+                showSuccessToast("Tournament loaded from SQL Database! (" + loaded.getTeamCount() + " teams)");
+            } else {
+                showErrorAlert("No tournament data found in SQL Database or connection failed.");
+            }
+        });
+
+        sqlCard.add(lblSqlTitle);
+        sqlCard.add(lblSqlDesc);
+        sqlCard.add(lblSqlInfo);
+        sqlCard.add(btnSqlSave);
+        sqlCard.add(btnSqlLoad);
+
+        // Card 2: Binary File Serialization
         JPanel saveCard = new JPanel(new GridLayout(4, 1, 0, 10));
-        saveCard.setPreferredSize(new Dimension(360, 200));
+        saveCard.setPreferredSize(new Dimension(340, 240));
         saveCard.setBackground(BG_CARD);
         saveCard.setBorder(new EmptyBorder(16, 18, 16, 18));
 
-        JLabel lblSaveTitle = new JLabel("💾  Save Tournament Data");
+        JLabel lblSaveTitle = new JLabel("💾  Binary Serialization (.dat)");
         lblSaveTitle.setFont(FONT_HEADER);
         lblSaveTitle.setForeground(TEXT_LIGHT);
 
@@ -627,13 +673,13 @@ public class TournamentGUI extends JFrame {
         saveCard.add(txtSaveFile);
         saveCard.add(btnSave);
 
-        // Card 2: Load Tournament
+        // Card 3: Load Binary File
         JPanel loadCard = new JPanel(new GridLayout(4, 1, 0, 10));
-        loadCard.setPreferredSize(new Dimension(360, 200));
+        loadCard.setPreferredSize(new Dimension(340, 240));
         loadCard.setBackground(BG_CARD);
         loadCard.setBorder(new EmptyBorder(16, 18, 16, 18));
 
-        JLabel lblLoadTitle = new JLabel("📂  Load Tournament Data");
+        JLabel lblLoadTitle = new JLabel("📂  Load Binary File (.dat)");
         lblLoadTitle.setFont(FONT_HEADER);
         lblLoadTitle.setForeground(TEXT_LIGHT);
 
@@ -664,6 +710,7 @@ public class TournamentGUI extends JFrame {
         loadCard.add(txtLoadFile);
         loadCard.add(btnLoad);
 
+        panel.add(sqlCard);
         panel.add(saveCard);
         panel.add(loadCard);
         return panel;
